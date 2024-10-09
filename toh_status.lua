@@ -1,1 +1,0 @@
-return "🟡 working / semi detected 🟡"
