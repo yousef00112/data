@@ -1,0 +1,8 @@
+local whitelist = {
+	"hwid 1",
+	"hwid 2",
+	"hwid 3",
+	"382DA266-0CF4-450B-ADE1-ED60F3E02C7F"
+}
+
+return whitelist
