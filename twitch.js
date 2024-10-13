@@ -85,7 +85,7 @@ twitch-videoad.js text/javascript
                         if (adBlockDiv == null) {
                             adBlockDiv = getAdBlockDiv();
                         }
-                        adBlockDiv.P.textContent = 'Twitch Ad-Blocky - made by yousef029';
+                        adBlockDiv.P.textContent = 'Twitch Ad-Solutions - made by yousef029';
                         adBlockDiv.style.display = 'block';
                     } else if (e.data.key == 'HideAdBlockBanner') {
                         if (adBlockDiv == null) {
