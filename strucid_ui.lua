@@ -305,7 +305,10 @@ do
 	end
 
     function library.toggle_gui()
-        container.Visible = not container.Visible
+		local container_main = container:FindFirstChild("Main")
+		if container_main then
+			container_main.Visible = not container_main.Visible
+		end
     end
 
 	
