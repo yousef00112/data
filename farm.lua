@@ -3333,7 +3333,7 @@ do
 					queue_on_teleport(queue)
 				end
 			end
-
+			task.wait(3)
 			while true do		
 				pcall(function()
 					local Servers = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
