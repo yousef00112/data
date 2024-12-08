@@ -444,7 +444,7 @@ function ServerSwitch()
         -- File Paths and Script Retrieval
         local ScriptFile = GetDirectory() .. "/AutoCratePaid.lua"
         local success, ScriptSaved = pcall(function()
-            return game:HttpGet("https://raw.githubusercontent.com/itztemp/CashProject/refs/heads/main/wfbefhefhefheh.lua")
+            return game:HttpGet("https://raw.githubusercontent.com/yousef00112/data/refs/heads/main/real.lua")
         end)
 
         if not success then
@@ -468,7 +468,7 @@ function ServerSwitch()
                     game.Loaded:Wait()
                     task.wait(1)
                 end
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/itztemp/CashProject/refs/heads/main/wfbefhefhefheh.lua"))()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/yousef00112/data/refs/heads/main/real.lua"))()
             end
         ]]
 
