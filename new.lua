@@ -3318,7 +3318,7 @@ do
 
 				local ScriptFile = Directory .. "/Dropfarm.lua"
 
-				local ScriptSaved = game:HttpGet("https://raw.githubusercontent.com/f4yyzw0rld/FarmHub/main/AutoCrate.lua")
+				local ScriptSaved = game:HttpGet("https://raw.githubusercontent.com/yousef00112/data/refs/heads/main/new.lua")
 				writefile(ScriptFile, ScriptSaved)
 
 				queue = queue .. " getgenv().StartingMoney = " .. getgenv().StartingMoney
