@@ -2192,7 +2192,7 @@ if RobberyData.CargoShip.Open then
 end
 
 if GetClosestAirdrop() then
-	warn(pcall(RobberyData.Airdrop.Callback, GetClosestAirdrop()))
+	pcall(RobberyData.Airdrop.Callback, GetClosestAirdrop())
 end
 
 if RobberyData.CargoShip.Open and not RobberyData.CargoShip.Robbed then
@@ -2200,12 +2200,13 @@ if RobberyData.CargoShip.Open and not RobberyData.CargoShip.Robbed then
 end
 
 if GetClosestAirdrop() then
-	warn(pcall(RobberyData.Airdrop.Callback, GetClosestAirdrop()))
+	pcall(RobberyData.Airdrop.Callback, GetClosestAirdrop())
 end
 
 if RobberyData.Mansion.Open then
-	warn(pcall(RobberyData.Mansion.Callback))
+	pcall(RobberyData.Mansion.Callback)
 end
 
 SetStatus("Switching niggers..")
+task.wait(3)
 ServerSwitch()	
