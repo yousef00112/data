@@ -1,5 +1,4 @@
-
-------------------->> Load Game <<--------------------
+-------------------->> Load Game <<--------------------
 
 if not game:IsLoaded() then 
 	game.Loaded:Wait() 
@@ -8,22 +7,22 @@ end
 
 -------------------->> Execution Check <<--------------------
 
-if getgenv().FarmHub then 
+if getgenv().Fragrance then 
 	pcall(function()
 		require(game:GetService("ReplicatedStorage").Game.Notification).new({
-			Text = "FarmHub has already been executed!",
+			Text = "Fragrance has already been executed!",
 			Duration = 4,
 		})
 	end)
 	return
 else
-	getgenv().FarmHub = true
+	getgenv().Fragrance = true
 end
 
 -------------------->> Directory Functions <<--------------------
 
 local function GetDirectory()
-	local Directory = "FarmHub"
+	local Directory = "Cezkot"
 	if not isfolder(Directory) then
 		makefolder(Directory)
 	end
@@ -76,7 +75,6 @@ local Settings = {
 	IncludeMansion              = true,
 	IncludeCargoShip            = true,
 	AutoBoostFPS                = true,
-	HideInCrate                 = false,
 	CollectCash                 = true,
 	AutoOpenSafes               = true,
 	SmallServer                 = true,
@@ -93,14 +91,9 @@ if SettingsFile then
 	if Success then
 		for i, v in pairs(Data) do
 			Settings[i] = v
-			print("Updated " .. i .. " to " .. tostring(v))
 		end
 	end
 end
-
-table.foreach(Settings, function(i, v)
-	print(i .. ": " .. tostring(v))
-end)
 
 -------------------->> Client Player <<--------------------
 
@@ -194,57 +187,6 @@ end
 local Queued = false
 local MadeBefore = Leaderstats:WaitForChild("Money").Value
 
-local function ServerSwitch()
-	if not Queued then
-		Queued = true
-
-		local ScriptFile = GetDirectory() .. "/AutoCrateLoader.lua"
-		local ScriptSaved = game:HttpGet("https://pastebin.com/raw/9AZESszu")
-		SaveFile(tostring(ScriptFile), ScriptSaved)
-		SaveFile("AutoCrateSettings.json", HttpService:JSONEncode(Settings))
-
-		local Queue = [[getgenv().StartingMoney = ]] .. getgenv().StartingMoney .. [[
-			getgenv().StartingTime = ]] .. getgenv().StartingTime .. [[
-			script_key = "]] .. script_key .. [[";
-			local success, error = pcall(function()
-				loadstring(readfile("]] .. tostring(ScriptFile) .. [["))()
-			end)
-
-			if not success then
-				if not game:IsLoaded() then 
-					game.Loaded:Wait() 
-					task.wait(1) 
-				end
-
-				loadstring(game:HttpGet("https://pastebin.com/raw/9AZESszu"))()
-			end
-		]]
-
-		queue_on_teleport(Queue)
-        pcall(function()
-            local Servers = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
-            local Server, Next = nil, nil
-
-            local function ListServers(cursor)
-                local Raw = game:HttpGet(Servers .. ((cursor and "&cursor="..cursor) or ""))
-
-                return HttpService:JSONDecode(Raw)
-            end
-
-            repeat
-                local Servers = ListServers(Next)
-                Server = Servers.data[math.random(1, (#Servers.data / 3))]
-                Next = Servers.nextPageCursor
-            until Server
-
-            if Server.playing < Server.maxPlayers and Server.id ~= game.JobId then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, Server.id, Player)
-            end
-
-            task.wait(10)
-        end)
-    end
-end
 function GetRejoinPrefferedFunction(...)
 	local prnt = print
 	local pcll = pcall
@@ -493,6 +435,82 @@ function GetRejoinPrefferedFunction(...)
 	RejoinPreferredServer(...)
 end
 
+local Queued = false
+
+function ServerSwitch()
+    if not Queued then
+        Queued = true
+
+        -- File Paths and Script Retrieval
+        local ScriptFile = GetDirectory() .. "/AutoCratePaid.lua"
+        local success, ScriptSaved = pcall(function()
+            return game:HttpGet("https://raw.githubusercontent.com/itztemp/CashProject/refs/heads/main/wfbefhefhefheh.lua")
+        end)
+
+        if not success then
+            warn("Failed to retrieve the script.")
+            return
+        end
+
+        writefile(ScriptFile, ScriptSaved)
+
+        -- Queue Code for Teleport
+        local Queue = [[
+            getgenv().StartingMoney = ]] .. tostring(getgenv().StartingMoney) .. [[
+            getgenv().StartingTime = ]] .. tostring(getgenv().StartingTime) .. [[
+            script_key = "]] .. tostring(script_key) .. [[";
+            local success, errorMsg = pcall(function()
+                loadfile("]] .. ScriptFile .. [[")();
+            end)
+
+            if not success then
+                if not game:IsLoaded() then
+                    game.Loaded:Wait()
+                    task.wait(1)
+                end
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/itztemp/CashProject/refs/heads/main/wfbefhefhefheh.lua"))()
+            end
+        ]]
+
+        queue_on_teleport(Queue)
+    end
+
+    if not ServerQueued then
+        ServerQueued = true
+
+        while true do
+            local success, errorMsg = pcall(function()
+                local ServersURL = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+
+                local function ListServers(cursor)
+                    local url = ServersURL .. ((cursor and "&cursor=" .. cursor) or "")
+                    local response = game:HttpGet(url)
+                    return HttpService:JSONDecode(response)
+                end
+
+                local Server, Next = nil, nil
+                repeat
+                    local Servers = ListServers(Next)
+                    if #Servers.data > 0 then
+                        Server = Servers.data[math.random(1, math.max(1, #Servers.data / 3))]
+                        Next = Servers.nextPageCursor
+                    end
+                until Server and Server.playing < Server.maxPlayers and Server.id ~= game.JobId
+
+                if Server then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, Server.id, Player)
+                end
+            end)
+
+            if not success then
+                warn("Error in server switch logic: " .. tostring(errorMsg))
+            end
+
+            task.wait(1) -- Prevent infinite looping with no delay
+        end
+    end
+end
+
 -------------------->> Failed Loading <<--------------------
 
 local IsLoaded = false
@@ -505,9 +523,6 @@ task.delay(10, function()
 			})
 		end)
 		task.wait(2)
-		task.delay(5, function()
-			Humanoid.Health = 0
-		end)
 		ServerSwitch()
 	end
 end)
@@ -526,13 +541,13 @@ local function CreateInstance(type, parent, data)
 end
 
 local gethui = gethui or (function() return game:GetService("Players").LocalPlayer.PlayerGui end)
-local FarmUI = CreateInstance("ScreenGui", gethui(), {
-	Name = "FarmHub"
+local FragranceUI = CreateInstance("ScreenGui", gethui(), {
+	Name = "Fragrance"
 })
 
-local Holder = CreateInstance("ImageLabel", FarmUI, {
+local Holder = CreateInstance("ImageLabel", FragranceUI, {
 	Name = "Holder",
-	Parent = FarmUI,
+	Parent = FragranceUI,
 	BackgroundTransparency = 1.000,
 	BorderSizePixel = 0,
 	Position = UDim2.new(0.0506075993, 0, 0.655761302, 0),
@@ -791,14 +806,14 @@ local UIListLayout_3 = CreateInstance("UIListLayout", Credits, {
 	SortOrder = Enum.SortOrder.LayoutOrder,
 })
 
-local Fayy = CreateInstance("TextLabel", Credits, {
-	Name = "Fayy",
+local Cezkot = CreateInstance("TextLabel", Credits, {
+	Name = "Cezkot",
 	Parent = Credits,
 	BackgroundTransparency = 1.000,
 	BorderSizePixel = 0,
 	Size = UDim2.new(0, 256, 0, 20),
 	Font = Enum.Font.SourceSansBold,
-	Text = "f4yyzw0rld#0 - Scripting + Interface",
+	Text = "x_ant1#0 - Scripting + Interface",
 	TextColor3 = Color3.fromRGB(255, 255, 255),
 	TextSize = 16.000,
 })
@@ -815,50 +830,14 @@ local Tempy = CreateInstance("TextLabel", Credits, {
 	TextSize = 16.000,
 })
 
-local Veoxn = CreateInstance("TextLabel", Credits, {
-	Name = "Veoxn",
+local ThankYou = CreateInstance("TextLabel", Credits, {
+	Name = "ThankYou",
 	Parent = Credits,
 	BackgroundTransparency = 1.000,
 	BorderSizePixel = 0,
 	Size = UDim2.new(0, 256, 0, 20),
 	Font = Enum.Font.SourceSansBold,
-	Text = "veoxn#0 - Inspiration + Debugging",
-	TextColor3 = Color3.fromRGB(255, 255, 255),
-	TextSize = 16.000,
-})
-
-local Nonreputable = CreateInstance("TextLabel", Credits, {
-	Name = "Nonreputable",
-	Parent = Credits,
-	BackgroundTransparency = 1.000,
-	BorderSizePixel = 0,
-	Size = UDim2.new(0, 256, 0, 20),
-	Font = Enum.Font.SourceSansBold,
-	Text = "nonreputable#0 - Operations Supervisor",
-	TextColor3 = Color3.fromRGB(255, 255, 255),
-	TextSize = 16.000,
-})
-
-local Website = CreateInstance("TextLabel", Credits, {
-	Name = "Website",
-	Parent = Credits,
-	BackgroundTransparency = 1.000,
-	BorderSizePixel = 0,
-	Size = UDim2.new(0, 256, 0, 20),
-	Font = Enum.Font.SourceSansBold,
-	Text = "https://farmhub.lol",
-	TextColor3 = Color3.fromRGB(255, 255, 255),
-	TextSize = 16.000,
-})
-
-local Discord = CreateInstance("TextLabel", Credits, {
-	Name = "Discord",
-	Parent = Credits,
-	BackgroundTransparency = 1.000,
-	BorderSizePixel = 0,
-	Size = UDim2.new(0, 256, 0, 20),
-	Font = Enum.Font.SourceSansBold,
-	Text = "https://discord.gg/farmhub",
+	Text = "Thank you for using the most racist farm!",
 	TextColor3 = Color3.fromRGB(255, 255, 255),
 	TextSize = 16.000,
 })
@@ -978,11 +957,6 @@ end)
 
 AddSwitch("Collect Dropped Cash", Settings.CollectCash, function(bool)
 	Settings.CollectCash = bool
-	SaveFile("AutoCrateSettings.json", HttpService:JSONEncode(Settings))
-end)
-
-AddSwitch("Hide In Crate", Settings.HideInCrate, function(bool)
-	Settings.HideInCrate = bool
 	SaveFile("AutoCrateSettings.json", HttpService:JSONEncode(Settings))
 end)
 
@@ -1289,7 +1263,6 @@ local function BigTP(cf, speed)
 			task.wait(1)
 
 			if Raycast(Root.Position + Vector3.new(0, 5, 0), Vector3.new(0, 1000, 0)) then
-				Humanoid.Health = 0
 				return error()
 			end
 
@@ -1297,7 +1270,6 @@ local function BigTP(cf, speed)
 				Mover:Destroy()
 				Noclip:Stop()
 				LagCheck:Stop()
-				Humanoid.Health = 0
 				return error()
 			end
 		end
@@ -1384,7 +1356,7 @@ local function GetVehicle()
 	end
 	if GetVehiclePacket() then
 		pcall(function()
-			GetVehicleModel().plate.SurfaceGui.Frame.TextLabel.Text = "FarmHub"
+			GetVehicleModel().plate.SurfaceGui.Frame.TextLabel.Text = "Fragrance"
 		end)
 		return true
 	end
@@ -1403,7 +1375,7 @@ local function GetVehicle()
 		repeat task.wait() until GetVehiclePacket() or tick() - BreakFunc > 1.5
 		if GetVehiclePacket() then 
 			pcall(function()
-				GetVehicleModel().plate.SurfaceGui.Frame.TextLabel.Text = "FarmHub"
+				GetVehicleModel().plate.SurfaceGui.Frame.TextLabel.Text = "Fragrance"
 			end)
 			return true
 		end 
@@ -1430,7 +1402,7 @@ local function GetVehicle()
 
 		if GetVehicleModel() then
 			pcall(function()
-				GetVehicleModel().plate.SurfaceGui.Frame.TextLabel.Text = "FarmHub"
+				GetVehicleModel().plate.SurfaceGui.Frame.TextLabel.Text = "Fragrance"
 			end)
 			return true
 		end
@@ -1454,7 +1426,7 @@ local function GetVehicle()
 
 				if GetVehiclePacket() then
 					pcall(function()
-						GetVehicleModel().Model.plate.SurfaceGui.Frame.TextLabel.Text = "FarmHub"
+						GetVehicleModel().Model.plate.SurfaceGui.Frame.TextLabel.Text = "Fragrance"
 					end)
 					return true
 				end
@@ -1521,8 +1493,6 @@ local function VehicleTP(cframe, leave, offset, speed)
 				if offset == 500 then
 					LagCheck:Stop()
 				end
-
-				Humanoid.Health = 0
 				return error()
 
 			end
@@ -1696,7 +1666,6 @@ end
 
 local function EquipGun(bool)
 	if not Backpack:FindFirstChild(SelectedGun) then return end
-	Backpack[SelectedGun]:SetAttribute("InventoryItemLocalEquipped", bool)
 	Backpack[SelectedGun].InventoryEquipRemote:FireServer(bool)
 end
 
@@ -1731,12 +1700,12 @@ local TargetedLocations = {
 local function LoadMap()
 	Workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
 	for i, Position in pairs(TargetedLocations) do
-		local TweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0)
+		local TweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0)
 
 		pcall(function()
 			local Tween = TweenService:Create(Workspace.CurrentCamera, TweenInfo, {CFrame = CFrame.new(Position)})
 			Tween:Play() 
-			SetStatus("Rendering position.. (" .. math.floor((i / #TargetedLocations) * 100) .. "%)")
+			SetStatus("Rendering cum.. (" .. math.floor((i / #TargetedLocations) * 100) .. "%)")
 
 			Tween.Completed:Wait()
 		end)
@@ -1761,7 +1730,7 @@ RobberyData.Mansion.Callback = function()
 		ExitVehicle()
 	end
 
-	SetStatus("TPing to Mansion..")
+	SetStatus("TPing to nigga..")
 	local MansionRobbery = Workspace.MansionRobbery
 	local TouchToEnter = MansionRobbery.Lobby.EntranceElevator.TouchToEnter
 	local ElevatorDoor = MansionRobbery.ArrivalElevator.Floors:GetChildren()[1].DoorLeft.InnerModel.Door
@@ -1787,12 +1756,11 @@ RobberyData.Mansion.Callback = function()
 	ElevatorTP:Disconnect()
 
 	if FailMansion then
-		Humanoid.Health = 0
 		return
 	end
 
 	GetGun()
-	SetStatus("Starting Mansion..")
+	SetStatus("Starting fields..")
 	repeat
 		wait(0.1)
 	until ElevatorDoor.Position.X > 3208
@@ -1815,11 +1783,10 @@ RobberyData.Mansion.Callback = function()
 	CutsceneTP:Disconnect()
 
 	if FailedStart then
-		Humanoid.Health = 0
 		return
 	end
 
-	SetStatus("Playing cutscene..")
+	SetStatus("Not paying slaves..")
 	Modules.MansionUtils.getProgressionStateChangedSignal(MansionRobbery):Wait()
 
 	local BodyVelocity = Instance.new("BodyVelocity", Root)
@@ -1912,9 +1879,9 @@ RobberyData.Mansion.Callback = function()
 		end
 	end)
 
-	SetStatus("Killing CEO Boss..")
+	SetStatus("Killing slaves..")
 	while Player.Folder:FindFirstChild("Pistol") and BossCEO and BossCEO:FindFirstChild("HumanoidRootPart") and BossCEO.Humanoid.Health ~= 1 do
-		SetStatus("Killing ceo boss.. (" .. math.floor((OldHealth - BossCEO.Humanoid.Health) / OldHealth * 100) .. "%)")
+		SetStatus("Killing slaves.. (" .. math.floor((OldHealth - BossCEO.Humanoid.Health) / OldHealth * 100) .. "%)")
 		EquipGun(true)
 		task.wait()
 		ShootGun()
@@ -1924,7 +1891,7 @@ RobberyData.Mansion.Callback = function()
 	BodyVelocity:Destroy()
 	EquipGun(false)
 
-	SetStatus("Waiting for reward..")
+	SetStatus("Waiting for cotton..")
 	repeat task.wait() until PlayerGui.AppUI:FindFirstChild("RewardSpinner")
 
 	WaitForReward()
@@ -1935,7 +1902,7 @@ RobberyData.CargoShip.Callback = function()
 	if not Settings.IncludeCargoShip then return end
 	if not GetVehiclePacket() and GetVehicleType() ~= "Heli" then
 		ExitVehicle()
-		SetStatus("Getting a helicopter..")
+		SetStatus("Getting a slave..")
 		for i, v in pairs(Workspace.Vehicles:GetChildren()) do
 			if v.Name == "Heli" and v.PrimaryPart and v.Seat and not v.Seat.Player.Value and not v:GetAttribute("Locked") and not Raycast(v.Seat.Position, RayDirections.High) then
 				VehicleTP(v.PrimaryPart.CFrame, true)
@@ -1961,7 +1928,7 @@ RobberyData.CargoShip.Callback = function()
 	end
 
 	if not GetVehiclePacket() then
-		SetStatus("No heli's available..")
+		SetStatus("No slaves's available..")
 		task.wait(0.75)
 		return false
 	end
@@ -1976,7 +1943,7 @@ RobberyData.CargoShip.Callback = function()
 	end
 	task.wait(0.5)
 
-	SetStatus("Dropping rope..")
+	SetStatus("Dropping cotton..")
 	Modules.Vehicle.Classes.Heli.attemptDropRope()
 
 	local RopePull = GetVehicleModel().Preset:WaitForChild("RopePull")
@@ -1990,7 +1957,7 @@ RobberyData.CargoShip.Callback = function()
 	end
 
 	for i = 1, 2 do
-		SetStatus("Attaching to crate".. i .. "..")
+		SetStatus("Attaching to cotton".. i .. "..")
 		if not RobberyData.CargoShip.Open then return end
 
 		local Crate = Workspace.CargoShip.Crates:GetChildren()[1]
@@ -2002,7 +1969,7 @@ RobberyData.CargoShip.Callback = function()
 			task.wait()
 		until RopePull.AttachedTo.Value ~= nil or not RobberyData.CargoShip.Open
 
-		SetStatus("Turning in crate" .. i .. "..")
+		SetStatus("Turning in cotton" .. i .. "..")
 		if not RobberyData.CargoShip.Open then return end
 		task.wait(0.1)
 		repeat
@@ -2029,29 +1996,15 @@ RobberyData.Airdrop.Callback = function(drop)
 	if not Settings.IncludeAirdrops then return end
 	if not GetClosestAirdrop() or not drop.PrimaryPart then return end
 
-	repeat task.wait() SetStatus("Waiting for drop..") until drop:GetAttribute("BriefcaseLanded") == true or not GetClosestAirdrop() or not drop.PrimaryPart 
+	repeat task.wait() SetStatus("Waiting for slave..") until drop:GetAttribute("BriefcaseLanded") == true or not GetClosestAirdrop() or not drop.PrimaryPart 
 	if not GetClosestAirdrop() or not drop.PrimaryPart then return end
 
-	SetStatus("Teleporting to crate..")
+	SetStatus("Teleporting to slave..")
 	VehicleTP(drop.PrimaryPart.CFrame * CFrame.new(10, 7.5, 0), true)
 	SmallTP(drop.PrimaryPart.CFrame * CFrame.new(0, 5, 0))
 	if not GetClosestAirdrop() or not drop.PrimaryPart then return end
 
-	local Noclip = nil
-	if Settings.HideInCrate then
-		pcall(function()
-			Modules.DefaultActions.crawlButton.onPressed()
-			Noclip = NoclipStart()
-			Root.CFrame = drop.PrimaryPart.CFrame * CFrame.new(0, -1.5, 0)
-		end)
-	end
-
-	local BodyVelocity = Instance.new("BodyVelocity", Root)
-	BodyVelocity.P = 3000
-	BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-	BodyVelocity.Velocity = Vector3.new()
-
-	SetStatus("Opening crate..")
+	SetStatus("Opening dick..")
 
 	task.spawn(function()
 		while drop and drop:FindFirstChild("NPCs") == nil do
@@ -2072,18 +2025,9 @@ RobberyData.Airdrop.Callback = function(drop)
 	until drop:GetAttribute("BriefcaseCollected") == true or not drop.PrimaryPart or IsArrested() or not Character
 	if drop then drop.Name = "" end
 	Camera.CameraType = Enum.CameraType.Custom
-	BodyVelocity:Remove()
-
-	if Settings.HideInCrate then
-		pcall(function()
-			Modules.DefaultActions.crawlButton.onPressed()
-			Root.CFrame = drop.PrimaryPart.CFrame * CFrame.new(0, 5, 0)
-			Noclip:Stop()
-		end)
-	end
 
 	if Settings.CollectCash then
-		SetStatus("Collecting cash drop..")
+		SetStatus("Collecting cotton..")
 		task.wait(0.75)
 		for i = 1, 3 do
 			for _, spec in pairs(Modules.UI.CircleAction.Specs) do
@@ -2095,7 +2039,7 @@ RobberyData.Airdrop.Callback = function(drop)
 		end
 	end
 
-	SetStatus("Waiting for reward..")
+	SetStatus("Waiting for master..")
 	WaitForReward()
 
 	drop:Destroy()
@@ -2118,10 +2062,7 @@ task.spawn(function()
 			SetStats(MoneyMade, TimeElapsed)
 		end)
 		if IsArrested() then
-			SetStatus("Your arrested, switching servers..")
-			task.delay(5, function()
-				Humanoid.Health = 0
-			end)
+			SetStatus("Your a nigga, switching servers..")
 			ServerSwitch()
 		end
 
@@ -2162,7 +2103,6 @@ task.spawn(function()
 		end
 	end
 end)
-
 
 task.spawn(function()
 	if not Settings.AutoBoostFPS then return end
@@ -2224,18 +2164,10 @@ if Settings.IncludeAirdrops and not Workspace:FindFirstChild("Drop") then
     LoadMap()
 end
 
-Humanoid.Died:Connect(function()
-	SetStatus("You died, switching servers..")
-	ServerSwitch()
-end)
-
 local function FixCoreGui()
 	game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
 		if child.Name == "ErrorPrompt" and child:FindFirstChild("MessageArea") and child.MessageArea:FindFirstChild("ErrorFrame") then
-			SetStatus("Client kicked, switching servers..")
-			task.delay(5, function()
-				Humanoid.Health = 0
-			end)
+			SetStatus("Kicked a nigga, switching servers..")
 			ServerSwitch()
 		end
 	end)
@@ -2243,17 +2175,14 @@ end
 
 task.spawn(function()
 	while not pcall(FixCoreGui) do
-		print("Failed to load coregui kick detection, retrying in 0.1s")
+		print("Failed to load black detection, retrying in 0.1s")
 		task.wait(0.1)
 	end
 end)
 
 task.spawn(function()
 	while task.wait(300) do
-		SetStatus("Timed out, switching servers..")
-		task.delay(5, function()
-			Humanoid.Health = 0
-		end)
+		SetStatus("You are a nigga, switching servers..")
 		ServerSwitch()
 	end
 end)
@@ -2278,8 +2207,5 @@ if RobberyData.Mansion.Open then
 	warn(pcall(RobberyData.Mansion.Callback))
 end
 
-SetStatus("Switching servers..")
-task.delay(5, function()
-	Humanoid.Health = 0
-end)
-ServerSwitch()
+SetStatus("Switching niggers..")
+ServerSwitch()	
